@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select categories:"
+        android:visibility="visible" />
+
+    <CheckBox
+        android:id="@+id/food"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Food"
+        tools:text="food" />
+
+    <CheckBox
+        android:id="@+id/hotel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Hotel" />
+
+    <CheckBox
+        android:id="@+id/sights"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sights" />
+
+    <CheckBox
+        android:id="@+id/wifi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="WiFi" />
+
+    <CheckBox
+        android:id="@+id/petrol"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Petrol" />
+
+    <CheckBox
+        android:id="@+id/art"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Art Galery" />
+
+    <CheckBox
+        android:id="@+id/church"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Church" />
+
+    <CheckBox
+        android:id="@+id/city_hall"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="City Hall" />
+
+    <CheckBox
+        android:id="@+id/embassy"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Embassy" />
+
+    <CheckBox
+        android:id="@+id/library"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Library" />
+
+    <CheckBox
+        android:id="@+id/museum"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Museum" />
+
+    <CheckBox
+        android:id="@+id/school"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="School" />
+
+    <CheckBox
+        android:id="@+id/zoo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Zoo" />
+
+    <Button
+        android:id="@+id/done_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Done" />
+
+</LinearLayout>

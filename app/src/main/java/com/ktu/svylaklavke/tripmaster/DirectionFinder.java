@@ -1,7 +1,8 @@
 package com.ktu.svylaklavke.tripmaster;
-
+//Nucrashina ties paskutiniu tasku
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -26,23 +27,29 @@ public class DirectionFinder {
     private DirectionFinderListener listener;
     private String origin;
     private String destination;
+    private String waypoints;
 
-    public DirectionFinder(DirectionFinderListener listener, String origin, String destination) {
+    public DirectionFinder(DirectionFinderListener listener, String origin, String destination, String waypoints) {
         this.listener = listener;
         this.origin = origin;
         this.destination = destination;
+        this.waypoints = waypoints;
+
     }
 
     public void execute() throws UnsupportedEncodingException {
         listener.onDirectionFinderStart();
         new DownloadRawData().execute(createUrl());
+        Log.d("URL", "execute: " + createUrl());
     }
 
     private String createUrl() throws UnsupportedEncodingException {
         String urlOrigin = URLEncoder.encode(origin, "utf-8");
         String urlDestination = URLEncoder.encode(destination, "utf-8");
 
-        return DIRECTION_URL_API + "origin=" + urlOrigin + "&destination=" + urlDestination + "&key=" + GOOGLE_API_KEY;
+        if (waypoints == null)
+        return DIRECTION_URL_API + "origin=" + urlOrigin + "&destination=" + urlDestination + "&key=" + GOOGLE_API_KEY +"&alternatives=" + true;
+        else return DIRECTION_URL_API + "origin=" + urlOrigin + "&destination=" + urlDestination + waypoints + "&key=" + GOOGLE_API_KEY;
     }
 
     private class DownloadRawData extends AsyncTask<String, Void, String> {
@@ -87,6 +94,7 @@ public class DirectionFinder {
 
         List<Route> routes = new ArrayList<Route>();
         JSONObject jsonData = new JSONObject(data);
+        Instructions instructions = new Instructions();
         JSONArray jsonRoutes = jsonData.getJSONArray("routes");
         for (int i = 0; i < jsonRoutes.length(); i++) {
             JSONObject jsonRoute = jsonRoutes.getJSONObject(i);
@@ -100,19 +108,55 @@ public class DirectionFinder {
             JSONObject jsonEndLocation = jsonLeg.getJSONObject("end_location");
             JSONObject jsonStartLocation = jsonLeg.getJSONObject("start_location");
 
+
             route.distance = new Distance(jsonDistance.getString("text"), jsonDistance.getInt("value"));
             route.duration = new Duration(jsonDuration.getString("text"), jsonDuration.getInt("value"));
             route.endAddress = jsonLeg.getString("end_address");
             route.startAddress = jsonLeg.getString("start_address");
+            instructions.starting_point = route.startAddress;
+            instructions.destination_point=route.endAddress;
             route.startLocation = new LatLng(jsonStartLocation.getDouble("lat"), jsonStartLocation.getDouble("lng"));
             route.endLocation = new LatLng(jsonEndLocation.getDouble("lat"), jsonEndLocation.getDouble("lng"));
             route.points = decodePolyLine(overview_polylineJson.getString("points"));
-            //route.description = jsonLeg.getString("maneuver");
-
+            if(routes.size() == 0)
+                route.mainRoute = true;
             routes.add(route);
         }
 
-        listener.onDirectionFinderSuccess(routes);
+
+        for (int i = 0; i < jsonRoutes.length(); i++) {
+            JSONObject jsonRoute = jsonRoutes.getJSONObject(i);
+            JSONArray jsonLegs = jsonRoute.getJSONArray("legs");
+            instructions = new Instructions();
+            double allMeters = 0;
+            for (int j = 0; j < jsonLegs.length(); j++) {
+                JSONObject leg = jsonLegs.getJSONObject(j);
+                JSONArray steps = leg.getJSONArray("steps");
+                for (int k = 0; k < steps.length(); k++) {
+                    JSONObject step = steps.getJSONObject(k);
+                    JSONObject duration = step.getJSONObject("distance");
+                    int meters = duration.getInt("value");
+                    JSONObject endPoint = step.getJSONObject("end_location");
+                    double lat = endPoint.getDouble("lat");
+                    double lng = endPoint.getDouble("lng");
+                    String messsage = step.getString("html_instructions");
+                    messsage = stripTagsCharArray(messsage);
+
+                    allMeters = meters + allMeters;
+                    instructions.setAllMeters(allMeters);
+                    messsage = "After " + meters + " meters " + messsage;
+                    Log.d("html", messsage);
+                    instructions.add_instruction(messsage,meters, new LatLng(lat,lng));
+                }
+
+            }
+            Route temp = routes.get(i);
+            temp.instructions=instructions;
+            routes.set(i,temp);
+
+        }
+
+        listener.onDirectionFinderSuccess(routes,instructions);
     }
 
     private List<LatLng> decodePolyLine(final String poly) {
@@ -151,4 +195,38 @@ public class DirectionFinder {
 
         return decoded;
     }
+    public static String stripHtmlRegex(String source) {
+        // Replace all tag characters with an empty string.
+        source =source.replace('[',' ');
+        source =source.replace(']',' ');
+        source =source.replace('_',' ');
+        source =source.replace('"',' ');
+        return source;
+    }
+    public static String stripTagsCharArray(String source) {
+        // Create char array to store our result.
+        char[] array = new char[source.length()];
+        int arrayIndex = 0;
+        boolean inside = false;
+
+        // Loop over characters and append when not inside a tag.
+        for (int i = 0; i < source.length(); i++) {
+            char let = source.charAt(i);
+            if (let == '<') {
+                inside = true;
+                continue;
+            }
+            if (let == '>') {
+                inside = false;
+                continue;
+            }
+            if (!inside) {
+                array[arrayIndex] = let;
+                arrayIndex++;
+            }
+        }
+        // ... Return written data.
+        return new String(array, 0, arrayIndex);
+    }
+
 }
